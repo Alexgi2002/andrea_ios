@@ -12,11 +12,11 @@ class APIClient {
     private let session: URLSession
     private let url = URL(string: "https://andrea-dev.cemisoft.cu/api/v1/")!
     
-    private var token : String?
+    private let decoder = JSONDecoder()
+    private let encoder = JSONEncoder()
     
     private init() {
         let configuration = URLSessionConfiguration.default
-        
         configuration.timeoutIntervalForRequest = 10.0
         configuration.timeoutIntervalForResource = 60.0
         configuration.allowsCellularAccess = true
@@ -24,42 +24,79 @@ class APIClient {
         
         self.session = URLSession(configuration: configuration)
         
-        token = UserDefaults.standard.string(forKey: "userToken")
+        
+        decoder.dateDecodingStrategy = .iso8601
     }
     
-    private func updateToken (token: String) {
-        self.token = token
+    private func interceptResponse(_ response: URLResponse) async throws {
+        guard let httpResponse = response as? HTTPURLResponse else { return }
+        
+        print(httpResponse.statusCode)
+        
+        if httpResponse.statusCode == 401 {
+            await MainActor.run {
+                AuthManager.shared.logout()
+            }
+            throw URLError(.userAuthenticationRequired)
+        }
     }
-    
     
     private func adaptRequest(_ request: URLRequest) -> URLRequest {
-        guard token != nil else {
+        guard let currentToken = AuthManager.shared.token else {
             return request
         }
         
         var authenticatedRequest = request
-        authenticatedRequest.setValue("Bearer \(token!)", forHTTPHeaderField: "Authorization")
+        authenticatedRequest.setValue("Bearer \(currentToken)", forHTTPHeaderField: "Authorization")
         return authenticatedRequest
     }
     
-    func getData(from path: String) async throws -> Data {
+    
+    func getData<T: Decodable>(from path: String, as type: T.Type) async throws -> T {
         var request = URLRequest(url: url.appendingPathComponent(path))
         request.httpMethod = "GET"
                 
         let finalRequest = adaptRequest(request)
         
-        let (data, _) = try await session.data(for: finalRequest)
-        return data
+        let (data, response) = try await session.data(for: finalRequest)
+        try await interceptResponse(response)
+        
+        let serverResponse = try decoder.decode(CustomResponse<T>.self, from: data)
+        
+        if serverResponse.isError {
+            throw APIError.backendError(message: serverResponse.error?.message ?? serverResponse.message ?? "Error desconocido del servidor")
+        }
+        
+        guard let resultData = serverResponse.data else {
+            throw APIError.noData
+        }
+        
+        return resultData
     }
     
-    func postData(from path: String, body: [String: Any]) async throws -> Data {
+    
+    func postData<T: Decodable, B: Encodable>(from path: String, body: B, responseType: T.Type) async throws -> T {
         var request = URLRequest(url: self.url.appendingPathComponent(path))
         request.httpMethod = "POST"
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try encoder.encode(body)
         
         let finalRequest = adaptRequest(request)
         
-        let (data, _) = try await session.data(for: finalRequest)
-        return data
+        let (data, response) = try await session.data(for: finalRequest)
+        try await interceptResponse(response)
+        
+        let serverResponse = try decoder.decode(CustomResponse<T>.self, from: data)
+        
+        if serverResponse.isError {
+            throw APIError.backendError(message: serverResponse.error?.message ?? serverResponse.message ?? "Error desconocido del servidor")
+        }
+        
+        guard let resultData = serverResponse.data else {
+            throw APIError.noData
+        }
+        
+        return resultData
     }
 }
+

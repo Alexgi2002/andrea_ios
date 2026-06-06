@@ -6,56 +6,48 @@
 //
 
 import SwiftUI
-import SwiftData
 
-struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+struct HomeView: View {
+    
+    @State private var selectedTab = 0
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
+        NavigationStack {
+            TabView(selection: $selectedTab) {
+                FeedView().tabItem{ Label("Inicio", systemImage: "flame.fill") }.tag(0)
+                WhispersView().tabItem{ Label("Susurros", systemImage: "microphone.fill") }.tag(1)
+                CommunityView().tabItem{ Label("Comunidades", systemImage: "person.3.fill") }.tag(2)
+                ChatView().tabItem{ Label("Chat", systemImage: "message.fill") }.tag(3)
+                ProfileView().tabItem{ Label("Perfil", systemImage: "person.fill") }.tag(4)
             }
+//            List {
+//                ForEach(items) { item in
+//                    NavigationLink {
+//                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+//                    } label: {
+//                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+//                    }
+//                }
+//                .onDelete(perform: deleteItems)
+//            }
+            .navigationTitle(selectedTab == 4 ? "" : "Andrea")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                }
+//                ToolbarItem {
+                    Button(action: {}) {
+                        Label("Buscar", systemImage: "magnifyingglass")
                     }
-                }
-            }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+                    Button(action: {}) {
+                        Label("Notificaciones", systemImage: "bell")
+                    }
+//                }
             }
         }
     }
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+    HomeView()
 }

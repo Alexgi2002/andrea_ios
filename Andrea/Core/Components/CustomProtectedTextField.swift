@@ -7,22 +7,37 @@
 
 import SwiftUI
 
-struct CustomTextField: View {
+struct CustomProtectedTextField: View {
     
     @Binding var text: String
     var hint: String
-    var icon: String
-    var keyboardType: UIKeyboardType
+    
+    @State private var showPassword = false
     
     var body: some View {
         Label(
             title: {
-                TextField(hint, text: $text)
-                    .keyboardType(keyboardType)
+                ZStack(alignment: .trailing) {
+                    if showPassword {
+                        TextField(hint, text: $text)
+                            .padding(.trailing, 40)
+                    } else {
+                        SecureField(hint, text: $text)
+                            .padding(.trailing, 40)
+                    }
+                    Button(action: {
+                        showPassword.toggle()
+                    }) {
+                        Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.trailing, 10)
+                }
+                
                     
             },
             icon: {
-                Image(systemName: icon)
+                Image(systemName: "lock")
                     .padding(.trailing, 8)
             }
         )
@@ -36,5 +51,5 @@ struct CustomTextField: View {
 
 #Preview {
     @Previewable @State var text: String = ""
-    CustomTextField(text: $text, hint: "Escribe tu mensaje", icon: "person", keyboardType: .default)
+    CustomProtectedTextField(text: $text, hint: "Escribe tu mensaje")
 }
