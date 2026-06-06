@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct FeedView: View {
-    @State private var viewModel: HomeViewModel = HomeViewModel()
+    @Environment(HomeViewModel.self) private var viewModel
+    
     var body: some View {
         ZStack {
             if viewModel.isLoading {
@@ -25,9 +26,7 @@ struct FeedView: View {
                 }
             }
         }
-        .task {
-            await viewModel.getData()
-        }
+        
     }
     
     private var noMoreCandidatesView: some View {

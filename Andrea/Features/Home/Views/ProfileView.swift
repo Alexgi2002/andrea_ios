@@ -13,7 +13,7 @@ struct Options: Identifiable {
 }
 
 struct ProfileView: View {
-    @State var viewModel = HomeViewModel()
+    @Environment(HomeViewModel.self) private var viewModel
     
     @State var showDialogLogout : Bool = false
     

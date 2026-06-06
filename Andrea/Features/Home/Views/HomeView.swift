@@ -12,6 +12,8 @@ struct HomeView: View {
     @State private var selectedTab = 0
 
     var body: some View {
+        @State var viewModel: HomeViewModel = HomeViewModel()
+        
         NavigationStack {
             TabView(selection: $selectedTab) {
                 FeedView().tabItem{ Label("Inicio", systemImage: "flame.fill") }.tag(0)
@@ -43,6 +45,10 @@ struct HomeView: View {
                         Label("Notificaciones", systemImage: "bell")
                     }
 //                }
+            }
+            .environment(viewModel)
+            .task {
+                await viewModel.getData()
             }
         }
     }
