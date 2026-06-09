@@ -11,14 +11,21 @@ struct CustomTextField: View {
     
     @Binding var text: String
     var hint: String
+    var leadingText: String?
     var icon: String
     var keyboardType: UIKeyboardType
     
     var body: some View {
         Label(
             title: {
-                TextField(hint, text: $text)
-                    .keyboardType(keyboardType)
+                HStack {
+                    if let x = leadingText {
+                        Text(x)
+                    }
+                    
+                    TextField(hint, text: $text)
+                        .keyboardType(keyboardType)
+                }
                     
             },
             icon: {
@@ -36,5 +43,5 @@ struct CustomTextField: View {
 
 #Preview {
     @Previewable @State var text: String = ""
-    CustomTextField(text: $text, hint: "Escribe tu mensaje", icon: "person", keyboardType: .default)
+    CustomTextField(text: $text, hint: "Escribe tu mensaje", leadingText: "+53", icon: "person", keyboardType: .default)
 }

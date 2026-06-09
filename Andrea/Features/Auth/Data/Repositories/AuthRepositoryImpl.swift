@@ -20,7 +20,10 @@ class AuthRepositoryImpl: AuthRepository{
     }
     
     func register(name: String, email: String, username: String, password: String, phone: String, country: String?, birthdate: Date, genderIdentity: Int, genderPreference: Int) async throws  {
+        let body = RegisterDTO(name: name, email: email, username: username, phone: phone, genderIdentity: genderIdentity, genderPreference: genderPreference, birthdate: birthdate.millisecondsSinceEpoch, password: password, country: country)
+        let _ = try await apiClient.postData(from: path + "/register", body: body, responseType: AuthResponse.self)
         
+//        return data
     }
 }
 

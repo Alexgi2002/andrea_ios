@@ -70,7 +70,7 @@ struct LoginView: View {
                                     
                                     authViewModel.login(username: email, password: password, fcmToken: nil, deviceName: "Emulador prueba")
                                     
-                                    print("LOGIN")
+//                                    print("LOGIN")
 //                                    print(result)
                                 })
                                 .padding(.bottom, 20)
@@ -87,7 +87,7 @@ struct LoginView: View {
                     .padding(.bottom, 30)
                     
                     HStack{
-                        Text("No tienes cuenta?")
+                        Text("¿No tienes cuenta?")
                             .foregroundStyle(Color.secondary)
                         NavigationLink("Registrate", value: AppDestination.register)
                     }
